@@ -92,6 +92,6 @@ endfunction
 if exists('s:timer')
 	call timer_stop(s:timer)
 endif
-let s:timer = timer_start(get(g:, 'diffnotify_spantime', 1000 * 60), function('s:main'), { 'repeat' : -1 })
+let s:timer = timer_start(get(g:, 'diffnotify_timespan', 1000 * 60), function('s:main'), { 'repeat' : -1 })
 
 
