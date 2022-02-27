@@ -1,6 +1,7 @@
 
 function! diffnotify#reset() abort
 	let g:diffnotify_context = get(g:, 'diffnotify_context', {
+		\ 'changed_files': [],
 		\ 'additions': 0,
 		\ 'deletions': 0,
 		\ 'rootdir': '',
@@ -43,16 +44,19 @@ function! s:main(t) abort
 		let rootdir = s:get_gitrootdir('.')
 		if !empty(rootdir)
 			let cmd = ['git', '--no-pager', 'diff', '--numstat'] + get(g:, 'diffnotify_arguments', [])
+			let changed_files = []
 			let additions = 0
 			let deletions = 0
 			for line in s:system(cmd, rootdir)
-				let m = matchlist(line, '^\s*\(\d\+\)\s\+\(\d\+\)\s\+')
+				let m = matchlist(line, '^\s*\(\d\+\)\s\+\(\d\+\)\s\+\(.\+\)$')
 				if !empty(m)
+					let changed_files += [m[3]]
 					let additions += str2nr(m[1])
 					let deletions += str2nr(m[2])
 				endif
 			endfor
 			let g:diffnotify_context = {
+				\ 'changed_files': changed_files,
 				\ 'additions': additions,
 				\ 'deletions': deletions,
 				\ 'rootdir': rootdir,
