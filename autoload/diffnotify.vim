@@ -62,11 +62,11 @@ function! s:main(t) abort
 				\ 'rootdir': rootdir,
 				\ }
 			if get(g:, 'diffnotify_threshold', 50) < additions + deletions
-				if exists('#User DiffNotifyThresholdOver')
+				if exists('#User#DiffNotifyThresholdOver')
 					doautocmd User DiffNotifyThresholdOver
 				endif
 			else
-				if exists('#User DiffNotifyThresholdUnder')
+				if exists('#User#DiffNotifyThresholdUnder')
 					doautocmd User DiffNotifyThresholdUnder
 				endif
 			endif
