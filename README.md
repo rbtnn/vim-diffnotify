@@ -24,7 +24,9 @@ The following is the recommended settings in my .vimrc.
 ```
 augroup DiffNotify
 	autocmd!
-	autocmd User DiffNotify
+	autocmd User DiffNotifyThresholdUnder
+		\ :let &showtabline = 0
+	autocmd User DiffNotifyThresholdOver
 		\ :let &showtabline = 2
 		\ |let &tabline =
 		\   printf('%%#TabLine#%d changed files with %d additions and %d deletions.',

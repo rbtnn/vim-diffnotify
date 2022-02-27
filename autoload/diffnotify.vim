@@ -9,7 +9,7 @@ function! diffnotify#reset() abort
 	if !exists('#DiffNotify')
 		augroup DiffNotify
 			autocmd!
-			autocmd User DiffNotify
+			autocmd User DiffNotifyThresholdOver
 				\ :echo '[diffnotify] There is a big difference('
 				\ |echohl DiffAdd
 				\ |echon '+' .. g:diffnotify_context['additions']
@@ -62,8 +62,12 @@ function! s:main(t) abort
 				\ 'rootdir': rootdir,
 				\ }
 			if get(g:, 'diffnotify_threshold', 50) < additions + deletions
-				if exists('#User DiffNotify')
-					doautocmd User DiffNotify
+				if exists('#User DiffNotifyThresholdOver')
+					doautocmd User DiffNotifyThresholdOver
+				endif
+			else
+				if exists('#User DiffNotifyThresholdUnder')
+					doautocmd User DiffNotifyThresholdUnder
 				endif
 			endif
 		endif
