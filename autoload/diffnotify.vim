@@ -5,8 +5,8 @@ function! diffnotify#reset() abort
 		\ 'deletions': 0,
 		\ 'rootdir': '',
 		\ })
-	if !exists('#diffnotify')
-		augroup diffnotify
+	if !exists('#DiffNotify')
+		augroup DiffNotify
 			autocmd!
 			autocmd User DiffNotify
 				\ :echo '[diffnotify] There is a big difference('
@@ -58,7 +58,9 @@ function! s:main(t) abort
 				\ 'rootdir': rootdir,
 				\ }
 			if get(g:, 'diffnotify_threshold', 50) < additions + deletions
-				doautocmd User DiffNotify
+				if exists('#User DiffNotify')
+					doautocmd User DiffNotify
+				endif
 			endif
 		endif
 	catch
