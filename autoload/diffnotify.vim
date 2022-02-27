@@ -1,20 +1,26 @@
 
 function! diffnotify#reset() abort
-	let g:diffnotify_context = get(g:, 'diffnotify_context', {})
-	augroup diffnotify
-		autocmd!
-		autocmd User DiffNotify
-			\ :echo '[diffnotify] There is a big difference('
-			\ |echohl DiffAdd
-			\ |echon '+' .. g:diffnotify_context['additions']
-			\ |echohl None
-			\ |echon ', '
-			\ |echohl DiffDelete
-			\ |echon '-' .. g:diffnotify_context['deletions']
-			\ |echohl None
-			\ |echon printf(') in the directory "%s". ', g:diffnotify_context['rootdir']),
-			\ )
-	augroup END
+	let g:diffnotify_context = get(g:, 'diffnotify_context', {
+		\ 'additions': 0,
+		\ 'deletions': 0,
+		\ 'rootdir': '',
+		\ })
+	if !exists('#diffnotify')
+		augroup diffnotify
+			autocmd!
+			autocmd User DiffNotify
+				\ :echo '[diffnotify] There is a big difference('
+				\ |echohl DiffAdd
+				\ |echon '+' .. g:diffnotify_context['additions']
+				\ |echohl None
+				\ |echon ', '
+				\ |echohl DiffDelete
+				\ |echon '-' .. g:diffnotify_context['deletions']
+				\ |echohl None
+				\ |echon printf(') in the directory "%s". ', g:diffnotify_context['rootdir']),
+				\ )
+		augroup END
+	endif
 	if exists('s:timer')
 		call timer_stop(s:timer)
 	endif
