@@ -16,7 +16,7 @@ The threshold for judgement of a difference.
 ### g:diffnotify_timespan (default: `1000 * 60`)
 The checking timespan(millisecond).
 
-### g:diffnotify_arguments (default: `''`)
+### g:diffnotify_arguments (default: `[]`)
 The arguments of the git-diff command.
 
 

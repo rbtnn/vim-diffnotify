@@ -1,18 +1,6 @@
 
-let s:prev_context = {
-	\ 'changed_files': [],
-	\ 'additions': 0,
-	\ 'deletions': 0,
-	\ 'rootdir': '',
-	\ }
-
 function! diffnotify#reset() abort
-	let g:diffnotify_context = get(g:, 'diffnotify_context', {
-		\ 'changed_files': [],
-		\ 'additions': 0,
-		\ 'deletions': 0,
-		\ 'rootdir': '',
-		\ })
+	let g:diffnotify_context = get(g:, 'diffnotify_context', s:new_context())
 	if !exists('#DiffNotify')
 		call diffnotify#styles#echo()
 	endif
@@ -25,58 +13,42 @@ endfunction
 
 
 function! s:main(t) abort
-	try
-		if get(g:, 'diffnotify_disabled', v:false)
-			return
+	if get(g:, 'diffnotify_disabled', v:false)
+		return
+	endif
+	if !executable('git')
+		return
+	endif
+	if 'n' != mode()
+		return
+	endif
+	let rootdir = s:get_gitrootdir('.')
+	if !empty(rootdir)
+		let params = [{ 'lines': [], 'rootdir': rootdir, }]
+		let cmd = ['git', '--no-pager', 'diff', '--numstat'] + get(g:, 'diffnotify_arguments', [])
+		if has('nvim')
+			call jobstart(cmd, {
+				\ 'cwd': rootdir,
+				\ 'on_stdout': function('s:system_onevent', params),
+				\ 'on_exit': function('s:system_exit_nvim', params),
+				\ })
+		else
+			call job_start(cmd, {
+				\ 'cwd': rootdir,
+				\ 'out_cb': function('s:system_onevent', params),
+				\ 'exit_cb': function('s:system_exit_vim', params),
+				\ })
 		endif
-		if !executable('git')
-			return
-		endif
-		if 'n' != mode()
-			return
-		endif
-		let rootdir = s:get_gitrootdir('.')
-		if !empty(rootdir)
-			let cmd = ['git', '--no-pager', 'diff', '--numstat'] + get(g:, 'diffnotify_arguments', [])
-			let changed_files = []
-			let additions = 0
-			let deletions = 0
-			for line in s:system(cmd, rootdir)
-				let m = matchlist(line, '^\s*\(\d\+\)\s\+\(\d\+\)\s\+\(.\+\)$')
-				if !empty(m)
-					let changed_files += [m[3]]
-					let additions += str2nr(m[1])
-					let deletions += str2nr(m[2])
-				endif
-			endfor
-			let g:diffnotify_context = {
-				\ 'changed_files': changed_files,
-				\ 'additions': additions,
-				\ 'deletions': deletions,
-				\ 'rootdir': rootdir,
-				\ }
-			if !s:same_context(s:prev_context, g:diffnotify_context)
-				if get(g:, 'diffnotify_threshold', 50) < additions + deletions
-					if exists('#User#DiffNotifyThresholdOver')
-						doautocmd User DiffNotifyThresholdOver
-					endif
-				else
-					if exists('#User#DiffNotifyThresholdUnder')
-						doautocmd User DiffNotifyThresholdUnder
-					endif
-				endif
-				let s:prev_context = deepcopy(g:diffnotify_context)
-			endif
-		endif
-	catch
-	endtry
+	endif
 endfunction
 
-function s:same_context(c1, c2) abort
-	return (a:c1['changed_files'] == a:c2['changed_files'])
-		\ && (a:c1['additions'] == a:c2['additions'])
-		\ && (a:c1['deletions'] == a:c2['deletions'])
-		\ && (a:c1['rootdir'] == a:c2['rootdir'])
+function! s:new_context() abort
+	return {
+		\ 'changed_files': [],
+		\ 'additions': 0,
+		\ 'deletions': 0,
+		\ 'rootdir': '',
+		\ }
 endfunction
 
 function! s:get_gitrootdir(path) abort
@@ -92,43 +64,51 @@ function! s:get_gitrootdir(path) abort
 	return ''
 endfunction
 
-function s:system(cmd, cwd) abort
-	let lines = []
-	if has('nvim')
-		let job = jobstart(a:cmd, {
-			\ 'cwd': a:cwd,
-			\ 'on_stdout': function('s:system_onevent', [{ 'lines': lines, }]),
-			\ 'on_stderr': function('s:system_onevent', [{ 'lines': lines, }]),
-			\ })
-		call jobwait([job])
-	else
-		let path = tempname()
-		try
-			if filereadable(path)
-				let lines = readfile(path)
-			endif
-			let job = job_start(a:cmd, {
-				\ 'cwd': a:cwd,
-				\ 'out_io': 'file',
-				\ 'out_name': path,
-				\ 'err_io': 'out',
-				\ })
-			while 'run' == job_status(job)
-			endwhile
-			if filereadable(path)
-				let lines = readfile(path)
-			endif
-		finally
-			if filereadable(path)
-				call delete(path)
-			endif
-		endtry
-	endif
-	return lines
-endfunction
+if has('nvim')
+	function s:system_onevent(d, job, data, event) abort
+		let a:d['lines'] += a:data
+		sleep 10m
+	endfunction
 
-function s:system_onevent(d, job, data, event) abort
-	let a:d['lines'] += a:data
-	sleep 10m
+	function s:system_exit_nvim(d, job, data, event) abort
+		call s:system_exit_vim(a:d, '', '')
+	endfunction
+else
+	function s:system_onevent(d, data, event) abort
+		let a:d['lines'] += [a:event]
+		sleep 10m
+	endfunction
+endif
+
+function s:system_exit_vim(d, job, status) abort
+	try
+		let changed_files = []
+		let additions = 0
+		let deletions = 0
+		for line in a:d['lines']
+			let m = matchlist(line, '^\s*\(\d\+\)\s\+\(\d\+\)\s\+\(.\+\)$')
+			if !empty(m)
+				let changed_files += [m[3]]
+				let additions += str2nr(m[1])
+				let deletions += str2nr(m[2])
+			endif
+		endfor
+		let g:diffnotify_context = {
+			\ 'changed_files': changed_files,
+			\ 'additions': additions,
+			\ 'deletions': deletions,
+			\ 'rootdir': a:d['rootdir'],
+			\ }
+		if get(g:, 'diffnotify_threshold', 50) < additions + deletions
+			if exists('#User#DiffNotifyThresholdOver')
+				doautocmd User DiffNotifyThresholdOver
+			endif
+		else
+			if exists('#User#DiffNotifyThresholdUnder')
+				doautocmd User DiffNotifyThresholdUnder
+			endif
+		endif
+	catch
+	endtry
 endfunction
 

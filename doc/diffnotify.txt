@@ -27,7 +27,7 @@ g:diffnotify_timespan                                    *g:diffnotify_timespan*
 
 g:diffnotify_arguments                                  *g:diffnotify_arguments*
 	The arguments of the git-diff command.
-	default: `''`
+	default: `[]`
 
 
 ==============================================================================
