@@ -24,7 +24,7 @@ The arguments of the git-diff command.
 ## Build-in Styles
 
 The following is the styles contained this plugin.  
-If You want to the syle, please you put it in your .vimrc.
+If You want to the style, please you put it in your .vimrc.
 
 ### Echo (default)
 
