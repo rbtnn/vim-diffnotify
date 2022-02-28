@@ -1,4 +1,11 @@
 
+let s:prev_context = {
+	\ 'changed_files': [],
+	\ 'additions': 0,
+	\ 'deletions': 0,
+	\ 'rootdir': '',
+	\ }
+
 function! diffnotify#reset() abort
 	let g:diffnotify_context = get(g:, 'diffnotify_context', {
 		\ 'changed_files': [],
@@ -7,20 +14,7 @@ function! diffnotify#reset() abort
 		\ 'rootdir': '',
 		\ })
 	if !exists('#DiffNotify')
-		augroup DiffNotify
-			autocmd!
-			autocmd User DiffNotifyThresholdOver
-				\ :echo '[diffnotify] There is a big difference('
-				\ |echohl DiffAdd
-				\ |echon '+' .. g:diffnotify_context['additions']
-				\ |echohl None
-				\ |echon ', '
-				\ |echohl DiffDelete
-				\ |echon '-' .. g:diffnotify_context['deletions']
-				\ |echohl None
-				\ |echon printf(') in the directory "%s". ', g:diffnotify_context['rootdir']),
-				\ )
-		augroup END
+		call diffnotify#styles#echo()
 	endif
 	if exists('s:timer')
 		call timer_stop(s:timer)
@@ -61,18 +55,28 @@ function! s:main(t) abort
 				\ 'deletions': deletions,
 				\ 'rootdir': rootdir,
 				\ }
-			if get(g:, 'diffnotify_threshold', 50) < additions + deletions
-				if exists('#User#DiffNotifyThresholdOver')
-					doautocmd User DiffNotifyThresholdOver
+			if !s:same_context(s:prev_context, g:diffnotify_context)
+				if get(g:, 'diffnotify_threshold', 50) < additions + deletions
+					if exists('#User#DiffNotifyThresholdOver')
+						doautocmd User DiffNotifyThresholdOver
+					endif
+				else
+					if exists('#User#DiffNotifyThresholdUnder')
+						doautocmd User DiffNotifyThresholdUnder
+					endif
 				endif
-			else
-				if exists('#User#DiffNotifyThresholdUnder')
-					doautocmd User DiffNotifyThresholdUnder
-				endif
+				let s:prev_context = deepcopy(g:diffnotify_context)
 			endif
 		endif
 	catch
 	endtry
+endfunction
+
+function s:same_context(c1, c2) abort
+	return (a:c1['changed_files'] == a:c2['changed_files'])
+		\ && (a:c1['additions'] == a:c2['additions'])
+		\ && (a:c1['deletions'] == a:c2['deletions'])
+		\ && (a:c1['rootdir'] == a:c2['rootdir'])
 endfunction
 
 function! s:get_gitrootdir(path) abort

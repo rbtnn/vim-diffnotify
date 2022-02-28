@@ -2,9 +2,8 @@
 
 # vim-diffnotify
 
-This plugin notifies if there is a big difference in the current directory is a git repository.
+This plugin notifies if there is a difference in the current directory is a git repository.
 
-![](https://raw.githubusercontent.com/rbtnn/vim-diffnotify/master/diffnotify.png)
 
 ## Variables
 
@@ -12,31 +11,31 @@ This plugin notifies if there is a big difference in the current directory is a 
 Disable this plugin if this value is `v:true`.
 
 ### g:diffnotify_threshold (default: `50`)
-The threshold for judgement of a big difference.
+The threshold for judgement of a difference.
 
 ### g:diffnotify_timespan (default: `1000 * 60`)
 The checking timespan(millisecond).
 
-## My Recommended Settings
+### g:diffnotify_arguments (default: `''`)
+The arguments of the git-diff command.
 
-The following is the recommended settings in my .vimrc.
+
+
+## Build-in Styles
+
+The following is the styles contained this plugin.
+
+### Echo (default)
 
 ```
-augroup DiffNotify
-	autocmd!
-	autocmd User DiffNotifyThresholdUnder
-		\ :let &showtabline = 0
-	autocmd User DiffNotifyThresholdOver
-		\ :let &showtabline = 2
-		\ |let &tabline =
-		\   printf('%%#TabLine#%d changed files with %d additions and %d deletions.',
-		\   len(g:diffnotify_context['changed_files']),
-		\   g:diffnotify_context['additions'],
-		\   g:diffnotify_context['deletions'])
-augroup END
-let g:diffnotify_threshold = 0
-let g:diffnotify_timespan = 1000
+call diffnotify#styles#echo()
 ```
+![](https://raw.githubusercontent.com/rbtnn/vim-diffnotify/master/diffnotify_echo.png)
 
-![](https://raw.githubusercontent.com/rbtnn/vim-diffnotify/master/diffnotify_recommended.png)
+### Tabline
+
+```
+call diffnotify#styles#tabline()
+```
+![](https://raw.githubusercontent.com/rbtnn/vim-diffnotify/master/diffnotify_tabline.png)
 
