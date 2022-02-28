@@ -23,7 +23,8 @@ The arguments of the git-diff command.
 
 ## Build-in Styles
 
-The following is the styles contained this plugin.
+The following is the styles contained this plugin.  
+If You want to the syle, please you put it in your .vimrc.
 
 ### Echo (default)
 
@@ -31,6 +32,8 @@ The following is the styles contained this plugin.
 call diffnotify#styles#echo()
 ```
 ![](https://raw.githubusercontent.com/rbtnn/vim-diffnotify/master/diffnotify_echo.png)
+
+
 
 ### Tabline
 
