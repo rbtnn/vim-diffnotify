@@ -39,6 +39,10 @@ function! s:main(t) abort
 				\ 'exit_cb': function('s:system_exit_vim', params),
 				\ })
 		endif
+	else
+		if exists('#User#DiffNotifyNoSuchRootDir')
+			doautocmd User DiffNotifyNoSuchRootDir
+		endif
 	endif
 endfunction
 

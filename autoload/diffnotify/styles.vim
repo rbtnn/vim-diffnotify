@@ -19,6 +19,8 @@ endfunction
 function! diffnotify#styles#tabline() abort
 	augroup DiffNotify
 		autocmd!
+		autocmd User DiffNotifyNoSuchRootDir
+			\ :let &showtabline = 0
 		autocmd User DiffNotifyThresholdUnder
 			\ :let &showtabline = 0
 		autocmd User DiffNotifyThresholdOver
