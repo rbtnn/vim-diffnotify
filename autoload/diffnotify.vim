@@ -68,21 +68,13 @@ function! s:get_gitrootdir(path) abort
 	return ''
 endfunction
 
-if has('nvim')
-	function s:system_onevent(d, job, data, event) abort
-		let a:d['lines'] += a:data
-		sleep 10m
-	endfunction
+function s:system_onevent(...) abort
+	let a:000[0]['lines'] += has('nvim') ? a:000[2] : [a:000[2]]
+endfunction
 
-	function s:system_exit_nvim(d, job, data, event) abort
-		call s:system_exit_vim(a:d, '', '')
-	endfunction
-else
-	function s:system_onevent(d, data, event) abort
-		let a:d['lines'] += [a:event]
-		sleep 10m
-	endfunction
-endif
+function s:system_exit_nvim(d, job, data, event) abort
+	call s:system_exit_vim(a:d, '', '')
+endfunction
 
 function s:system_exit_vim(d, job, status) abort
 	try
