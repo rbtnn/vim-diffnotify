@@ -1,8 +1,9 @@
 
 function! diffnotify#reset() abort
 	let g:diffnotify_context = get(g:, 'diffnotify_context', s:new_context())
-	if !exists('#DiffNotify')
-		call diffnotify#styles#echo()
+	let g:diffnotify_style = get(g:, 'diffnotify_style', 'echo')
+	if ('echo' != g:diffnotify_style) && ('tabline' != g:diffnotify_style)
+		let g:diffnotify_style = 'echo'
 	endif
 	if exists('s:timer')
 		call timer_stop(s:timer)
@@ -40,8 +41,10 @@ function! s:main(t) abort
 				\ })
 		endif
 	else
-		if exists('#User#DiffNotifyNoSuchRootDir')
-			doautocmd User DiffNotifyNoSuchRootDir
+		if 'tabline' == g:diffnotify_style
+			let &showtabline = 0
+		else
+			" nop
 		endif
 	endif
 endfunction
@@ -97,11 +100,36 @@ function s:system_exit_vim(d, job, status) abort
 			\ }
 		if get(g:, 'diffnotify_threshold', 50) < additions + deletions
 			if exists('#User#DiffNotifyThresholdOver')
-				doautocmd User DiffNotifyThresholdOver
+				let &showtabline = 2
+				let &tabline =
+					\ printf('%%#TabLine#%d changed files with %d additions and %d deletions.',
+					\ len(g:diffnotify_context['changed_files']),
+					\ g:diffnotify_context['additions'],
+					\ g:diffnotify_context['deletions'])
+			endif
+			if 'tabline' == g:diffnotify_style
+				let &showtabline = 2
+				let &tabline =
+					\   printf('%%#TabLine#%d changed files with %d additions and %d deletions.',
+					\   len(g:diffnotify_context['changed_files']),
+					\   g:diffnotify_context['additions'],
+					\   g:diffnotify_context['deletions'])
+			else
+				echo '[diffnotify] There is a difference('
+				echohl DiffAdd
+				echon '+' .. g:diffnotify_context['additions']
+				echohl None
+				echon ', '
+				echohl DiffDelete
+				echon '-' .. g:diffnotify_context['deletions']
+				echohl None
+				echon printf(') in the directory "%s". ', g:diffnotify_context['rootdir'])
 			endif
 		else
-			if exists('#User#DiffNotifyThresholdUnder')
-				doautocmd User DiffNotifyThresholdUnder
+			if 'tabline' == g:diffnotify_style
+				let &showtabline = 0
+			else
+				" nop
 			endif
 		endif
 	catch

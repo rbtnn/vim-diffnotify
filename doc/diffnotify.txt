@@ -35,12 +35,12 @@ Build-in Styles                                      *diffnotify-buildin-styles*
 
 Echo style
 >
-    call diffnotify#styles#echo()
+    let g:diffnotify_style = 'echo'
 <
 
 Tabline style
 >
-    call diffnotify#styles#tabline()
+    let g:diffnotify_style = 'tabline'
 <
 
 

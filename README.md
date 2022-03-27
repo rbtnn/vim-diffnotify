@@ -29,7 +29,7 @@ If You want to the style, please you put it in your .vimrc.
 ### Echo (default)
 
 ```
-call diffnotify#styles#echo()
+let g:diffnotify_style = 'echo'
 ```
 ![](https://raw.githubusercontent.com/rbtnn/vim-diffnotify/master/diffnotify_echo.png)
 
@@ -38,7 +38,7 @@ call diffnotify#styles#echo()
 ### Tabline
 
 ```
-call diffnotify#styles#tabline()
+let g:diffnotify_style = 'tabline'
 ```
 ![](https://raw.githubusercontent.com/rbtnn/vim-diffnotify/master/diffnotify_tabline.png)
 
